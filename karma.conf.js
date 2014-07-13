@@ -7,7 +7,7 @@ module.exports = function(config) {
     basePath: '',
 
     // testing framework to use (jasmine/mocha/qunit/...)
-    frameworks: ['jasmine'],
+    frameworks: ['mocha'],
 
     // list of files / patterns to load in the browser
     files: [
@@ -22,15 +22,21 @@ module.exports = function(config) {
       'client/bower_components/lodash/dist/lodash.compat.js',
       'client/bower_components/angular-socket-io/socket.js',
       'client/app/app.js',
-      'client/app/app.coffee',
+//      'client/app/app.coffee',
       'client/app/**/*.js',
-      'client/app/**/*.coffee',
+//      'client/app/**/*.coffee',
       'client/components/**/*.js',
-      'client/components/**/*.coffee',
+//      'client/components/**/*.coffee',
       'client/app/**/*.jade',
       'client/components/**/*.jade',
       'client/app/**/*.html',
-      'client/components/**/*.html'
+      'client/components/**/*.html',
+
+      //Test-Specific Code
+      'node_modules/chai/chai.js',
+
+      //mocha stuff
+      'mocha.conf.js'
     ],
 
     preprocessors: {
