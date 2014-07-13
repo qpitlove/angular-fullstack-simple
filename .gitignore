@@ -5,4 +5,4 @@ public
 client/bower_components
 dist
 .idea
-/server/config/local.env.js
+#/server/config/local.env.js
