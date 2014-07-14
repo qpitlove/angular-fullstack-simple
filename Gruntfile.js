@@ -360,10 +360,10 @@ module.exports = function (grunt) {
     // Run some tasks in parallel to speed up the build process
     concurrent: {
       server: [
-        'jade',
+        'jade'
       ],
       test: [
-        'jade',
+        'jade'
       ],
       debug: {
         tasks: [
@@ -481,7 +481,7 @@ module.exports = function (grunt) {
           ]
         }
       }
-    },
+    }
   });
 
   // Used for delaying livereload until after server has restarted
