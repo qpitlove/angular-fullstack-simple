@@ -400,10 +400,17 @@ module.exports = function (grunt) {
       options: {
         configFile: 'protractor.conf.js'
       },
-      chrome: {
+      /*chrome: {
         options: {
           args: {
             browser: 'chrome'
+          }
+        }
+      },*/
+      phantomjs: {
+        options: {
+          args: {
+            browser: 'phantomjs'
           }
         }
       }
@@ -572,7 +579,8 @@ module.exports = function (grunt) {
 
     else grunt.task.run([
       'test:server',
-      'test:client'
+      'test:client',
+      'test:e2e'
     ]);
   });
 
