@@ -9,7 +9,9 @@ module.exports = function (grunt) {
     ngtemplates: 'grunt-angular-templates',
     cdnify: 'grunt-google-cdn',
     protractor: 'grunt-protractor-runner',
-    injector: 'grunt-asset-injector'
+    injector: 'grunt-asset-injector',
+    ssh_deploy: 'grunt-ssh-deploy'/*,
+    sshexec: 'grunt-ssh'*/
   });
 
   // Time how long tasks take. Can help when optimizing build times
@@ -17,28 +19,13 @@ module.exports = function (grunt) {
 
   // Define the configuration for all the tasks
   grunt.initConfig({
-    deploy: {
-      liveservers: {
-        options:{
-          servers: [{
-            host: '123.123.123.12',
-            port: 22,
-            username: 'username',
-            password: 'password'
-          }],
-          cmds_before_deploy: ["some cmds you may want to exec before deploy"],
-          cmds_after_deploy: ["forever restart", "some other cmds you want to exec after deploy"],
-          deploy_path: 'your deploy path in server'
-        }
-      }
-    },
-
     // Project settings
     yeoman: {
       // configurable paths
       client: require('./bower.json').appPath || 'client',
       dist: 'dist'
     },
+
     express: {
       options: {
         port: process.env.PORT || 9000
@@ -225,10 +212,10 @@ module.exports = function (grunt) {
       dist: {
         files: {
           src: [
-            '<%= yeoman.dist %>/public/{,*/}*.js',
-            '<%= yeoman.dist %>/public/{,*/}*.css',
-            '<%= yeoman.dist %>/public/assets/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
-            '<%= yeoman.dist %>/public/assets/fonts/*'
+            '<%= yeoman.dist %>/client/{,*/}*.js',
+            '<%= yeoman.dist %>/client/{,*/}*.css',
+            '<%= yeoman.dist %>/client/assets/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
+            '<%= yeoman.dist %>/client/assets/fonts/*'
           ]
         }
       }
@@ -240,19 +227,19 @@ module.exports = function (grunt) {
     useminPrepare: {
       html: ['<%= yeoman.client %>/index.html'],
       options: {
-        dest: '<%= yeoman.dist %>/public'
+        dest: '<%= yeoman.dist %>/client'
       }
     },
 
     // Performs rewrites based on rev and the useminPrepare configuration
     usemin: {
-      html: ['<%= yeoman.dist %>/public/{,*/}*.html'],
-      css: ['<%= yeoman.dist %>/public/{,*/}*.css'],
-      js: ['<%= yeoman.dist %>/public/{,*/}*.js'],
+      html: ['<%= yeoman.dist %>/client/{,*/}*.html'],
+      css: ['<%= yeoman.dist %>/client/{,*/}*.css'],
+      js: ['<%= yeoman.dist %>/client/{,*/}*.js'],
       options: {
         assetsDirs: [
-          '<%= yeoman.dist %>/public',
-          '<%= yeoman.dist %>/public/assets/images'
+          '<%= yeoman.dist %>/client',
+          '<%= yeoman.dist %>/client/assets/images'
         ],
         // This is so we update image references in our ng-templates
         patterns: {
@@ -270,7 +257,7 @@ module.exports = function (grunt) {
           expand: true,
           cwd: '<%= yeoman.client %>/assets/images',
           src: '{,*/}*.{png,jpg,jpeg,gif}',
-          dest: '<%= yeoman.dist %>/public/assets/images'
+          dest: '<%= yeoman.dist %>/client/assets/images'
         }]
       }
     },
@@ -281,7 +268,7 @@ module.exports = function (grunt) {
           expand: true,
           cwd: '<%= yeoman.client %>/assets/images',
           src: '{,*/}*.svg',
-          dest: '<%= yeoman.dist %>/public/assets/images'
+          dest: '<%= yeoman.dist %>/client/assets/images'
         }]
       }
     },
@@ -341,7 +328,7 @@ module.exports = function (grunt) {
           expand: true,
           dot: true,
           cwd: '<%= yeoman.client %>',
-          dest: '<%= yeoman.dist %>/public',
+          dest: '<%= yeoman.dist %>/client',
           src: [
             '*.{ico,png,txt}',
             '.htaccess',
@@ -353,7 +340,7 @@ module.exports = function (grunt) {
         }, {
           expand: true,
           cwd: '.tmp/images',
-          dest: '<%= yeoman.dist %>/public/assets/images',
+          dest: '<%= yeoman.dist %>/client/assets/images',
           src: ['generated/*']
         }, {
           expand: true,
@@ -503,7 +490,72 @@ module.exports = function (grunt) {
           ]
         }
       }
+    },
+
+    environments: {
+      staging: {
+        options: {
+          host: 'localhost',
+          username: 'irteam',
+          //password: '<%= secret.staging.password %>',
+          privateKey: grunt.file.read("/home1/irteam/.ssh/id_rsa"),
+          //agent: process.env.SSH_AUTH_SOCK,
+          port: '22',
+          deploy_path: '/home1/irteam/deploy',
+          local_path: 'dist',
+          before_deploy: 'source ~/.bash_profile && cd /home1/irteam/deploy/current && forever stopall',
+          after_deploy:  'source ~/.bash_profile && cd /home1/irteam/deploy/current && npm install --production && forever start server/app.js',
+          current_symlink: 'current',
+          debug: true
+        }
+      },
+      production: {
+        options: {
+          host: 'localhost',
+          username: 'irteam',
+          //password: '<%= secret.production.password %>',
+          privateKey: grunt.file.read("/home1/irteam/.ssh/id_rsa"),
+          agent: process.env.SSH_AUTH_SOCK,
+          port: '22',
+          deploy_path: '/home1/irteam/deploy',
+          local_path: 'dist',
+          before_deploy: 'echo hello',
+          after_deploy: 'node app.js',
+          current_symlink: 'current'
+        }
+      }
     }
+
+    /*sshconfig: {
+      'dev-jeongki.ncl': {
+        host: 'localhost',
+        username: 'irteam',
+        privateKey: grunt.file.read("/home1/irteam/.ssh/id_rsa"),
+        agent: process.env.SSH_AUTH_SOCK
+      }
+    },
+    sshexec: {
+      deploy: {
+        command: [
+          'uptime',
+          'mkdir -p deploy',
+          'cd deploy',
+          'mkdir $(date +%Y%m%d_%H%M%S)',
+          'cd $_',
+          'git clone https://github.com/qpitlove/angular-fullstack-simple.git .',
+          'node -v',
+          'npm install',
+          'bower install',
+          'grunt build',
+          'cd dist',
+          'node app.js'
+        ].join(' && '),
+        options: {
+          config: 'dev-jeongki.ncl'
+        }
+      }
+    },*/
+
   });
 
   // Used for delaying livereload until after server has restarted
@@ -615,6 +667,10 @@ module.exports = function (grunt) {
     'uglify',
     'rev',
     'usemin'
+  ]);
+
+  grunt.registerTask('deploy', [
+    'ssh_deploy:staging'
   ]);
 
   grunt.registerTask('default', [
